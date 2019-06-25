@@ -150,7 +150,7 @@ static __inline__ __attribute__((always_inline)) void* TPCircularBufferTail(TPCi
  *  for reading, and the number of available bytes to read.
  *
  * @param buffer Circular buffer
- * @param offset The offset from the tail
+ * @param offsetBytes The offset amount of bytes from the tail
  * @param availableBytes On output, the number of bytes ready for reading
  * @return Pointer to the first bytes ready for reading, or NULL if buffer is empty
  */
