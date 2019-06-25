@@ -156,7 +156,7 @@ static __inline__ __attribute__((always_inline)) void* TPCircularBufferTail(TPCi
  */
 static __inline__ __attribute__((always_inline)) void* TPCircularBufferTailWithOffset(TPCircularBuffer *buffer, uint32_t offsetBytes, uint32_t* availableBytes) {
     *availableBytes = 0;
-    if (offsetBytes > buffer->fillCount){
+    if (offsetBytes < buffer->fillCount){
          *availableBytes = buffer->fillCount - offsetBytes;
     }
     if ( *availableBytes == 0 ) return NULL;
