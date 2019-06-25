@@ -155,9 +155,11 @@ static __inline__ __attribute__((always_inline)) void* TPCircularBufferTail(TPCi
  * @return Pointer to the first bytes ready for reading, or NULL if buffer is empty
  */
 static __inline__ __attribute__((always_inline)) void* TPCircularBufferTailWithOffset(TPCircularBuffer *buffer, uint32_t offsetBytes, uint32_t* availableBytes) {
-    uint32_t bytesLeft = buffer->fillCount - offsetBytes;
-    if (bytesLeft <= 0) return NULL;
-    *availableBytes = bytesLeft;
+    *availableBytes = 0;
+    if (offsetBytes > buffer->fillCount){
+         *availableBytes = buffer->fillCount - offsetBytes;
+    }
+    if ( *availableBytes == 0 ) return NULL;
     return (void*)((char*)buffer->buffer + buffer->tail + offsetBytes);
 }
 
