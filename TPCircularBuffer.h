@@ -146,7 +146,7 @@ static __inline__ __attribute__((always_inline)) void* TPCircularBufferTail(TPCi
 /*!
  * Access end of buffer with a given offset
  *
- *  This gives you a pointer to the end of the buffer plus a given offset, ready
+ *  This gives you a pointer to the tail of the buffer plus a given offset, ready
  *  for reading, and the number of available bytes to read.
  *
  * @param buffer Circular buffer
