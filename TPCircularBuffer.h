@@ -144,6 +144,27 @@ static __inline__ __attribute__((always_inline)) void* TPCircularBufferTail(TPCi
 }
 
 /*!
+ * Access end of buffer with a given offset
+ *
+ *  This gives you a pointer to the tail of the buffer plus a given offset, ready
+ *  for reading, and the number of available bytes to read.
+ *
+ * @param buffer Circular buffer
+ * @param offsetBytes The offset amount of bytes from the tail
+ * @param availableBytes On output, the number of bytes ready for reading
+ * @return Pointer to the first bytes ready for reading, or NULL if buffer is empty
+ */
+static __inline__ __attribute__((always_inline)) void* TPCircularBufferTailWithOffset(TPCircularBuffer *buffer, uint32_t offsetBytes, uint32_t* availableBytes) {
+    *availableBytes = 0;
+    if (offsetBytes < buffer->fillCount){
+         *availableBytes = buffer->fillCount - offsetBytes;
+    }
+    if ( *availableBytes == 0 ) return NULL;
+    return (void*)((char*)buffer->buffer + buffer->tail + offsetBytes);
+}
+
+
+/*!
  * Consume bytes in buffer
  *
  *  This frees up the just-read bytes, ready for writing again.
