@@ -69,7 +69,7 @@ typedef struct {
     uint32_t           head;
     volatile atomicInt fillCount;
     bool              atomic;
-} TPCircularBuffer;
+} TPCircularBufferSkoove;
 
 /*!
  * Initialise buffer
@@ -90,14 +90,14 @@ typedef struct {
  */
 #define TPCircularBufferInit(buffer, length) \
     _TPCircularBufferInit(buffer, length, sizeof(*buffer))
-bool _TPCircularBufferInit(TPCircularBuffer *buffer, uint32_t length, size_t structSize);
+bool _TPCircularBufferInit(TPCircularBufferSkoove *buffer, uint32_t length, size_t structSize);
 
 /*!
  * Cleanup buffer
  *
  *  Releases buffer resources.
  */
-void  TPCircularBufferCleanup(TPCircularBuffer *buffer);
+void  TPCircularBufferCleanup(TPCircularBufferSkoove *buffer);
 
 /*!
  * Clear buffer
@@ -107,7 +107,7 @@ void  TPCircularBufferCleanup(TPCircularBuffer *buffer);
  *  This is safe for use by consumer while producer is accessing 
  *  buffer.
  */
-void  TPCircularBufferClear(TPCircularBuffer *buffer);
+void  TPCircularBufferClear(TPCircularBufferSkoove *buffer);
     
 /*!
  * Set the atomicity
@@ -123,7 +123,7 @@ void  TPCircularBufferClear(TPCircularBuffer *buffer);
  * @param buffer Circular buffer
  * @param atomic Whether the buffer is atomic (default true)
  */
-void  TPCircularBufferSetAtomic(TPCircularBuffer *buffer, bool atomic);
+void  TPCircularBufferSetAtomic(TPCircularBufferSkoove *buffer, bool atomic);
 
 // Reading (consuming)
 
@@ -137,7 +137,7 @@ void  TPCircularBufferSetAtomic(TPCircularBuffer *buffer, bool atomic);
  * @param availableBytes On output, the number of bytes ready for reading
  * @return Pointer to the first bytes ready for reading, or NULL if buffer is empty
  */
-static __inline__ __attribute__((always_inline)) void* TPCircularBufferTail(TPCircularBuffer *buffer, uint32_t* availableBytes) {
+static __inline__ __attribute__((always_inline)) void* TPCircularBufferTail(TPCircularBufferSkoove *buffer, uint32_t* availableBytes) {
     *availableBytes = buffer->fillCount;
     if ( *availableBytes == 0 ) return NULL;
     return (void*)((char*)buffer->buffer + buffer->tail);
@@ -154,7 +154,7 @@ static __inline__ __attribute__((always_inline)) void* TPCircularBufferTail(TPCi
  * @param availableBytes On output, the number of bytes ready for reading
  * @return Pointer to the first bytes ready for reading, or NULL if buffer is empty
  */
-static __inline__ __attribute__((always_inline)) void* TPCircularBufferTailWithOffset(TPCircularBuffer *buffer, uint32_t offsetBytes, uint32_t* availableBytes) {
+static __inline__ __attribute__((always_inline)) void* TPCircularBufferTailWithOffset(TPCircularBufferSkoove *buffer, uint32_t offsetBytes, uint32_t* availableBytes) {
     *availableBytes = 0;
     if (offsetBytes < buffer->fillCount){
          *availableBytes = buffer->fillCount - offsetBytes;
@@ -172,7 +172,7 @@ static __inline__ __attribute__((always_inline)) void* TPCircularBufferTailWithO
  * @param buffer Circular buffer
  * @param amount Number of bytes to consume
  */
-static __inline__ __attribute__((always_inline)) void TPCircularBufferConsume(TPCircularBuffer *buffer, uint32_t amount) {
+static __inline__ __attribute__((always_inline)) void TPCircularBufferConsume(TPCircularBufferSkoove *buffer, uint32_t amount) {
     buffer->tail = (buffer->tail + amount) % buffer->length;
     if ( buffer->atomic ) {
         atomicFetchAdd(&buffer->fillCount, -(int)amount);
@@ -192,7 +192,7 @@ static __inline__ __attribute__((always_inline)) void TPCircularBufferConsume(TP
  * @param availableBytes On output, the number of bytes ready for writing
  * @return Pointer to the first bytes ready for writing, or NULL if buffer is full
  */
-static __inline__ __attribute__((always_inline)) void* TPCircularBufferHead(TPCircularBuffer *buffer, uint32_t* availableBytes) {
+static __inline__ __attribute__((always_inline)) void* TPCircularBufferHead(TPCircularBufferSkoove *buffer, uint32_t* availableBytes) {
     *availableBytes = (buffer->length - buffer->fillCount);
     if ( *availableBytes == 0 ) return NULL;
     return (void*)((char*)buffer->buffer + buffer->head);
@@ -208,7 +208,7 @@ static __inline__ __attribute__((always_inline)) void* TPCircularBufferHead(TPCi
  * @param buffer Circular buffer
  * @param amount Number of bytes to produce
  */
-static __inline__ __attribute__((always_inline)) void TPCircularBufferProduce(TPCircularBuffer *buffer, uint32_t amount) {
+static __inline__ __attribute__((always_inline)) void TPCircularBufferProduce(TPCircularBufferSkoove *buffer, uint32_t amount) {
     buffer->head = (buffer->head + amount) % buffer->length;
     if ( buffer->atomic ) {
         atomicFetchAdd(&buffer->fillCount, (int)amount);
@@ -228,7 +228,7 @@ static __inline__ __attribute__((always_inline)) void TPCircularBufferProduce(TP
  * @param len Number of bytes in source buffer
  * @return true if bytes copied, false if there was insufficient space
  */
-static __inline__ __attribute__((always_inline)) bool TPCircularBufferProduceBytes(TPCircularBuffer *buffer, const void* src, uint32_t len) {
+static __inline__ __attribute__((always_inline)) bool TPCircularBufferProduceBytes(TPCircularBufferSkoove *buffer, const void* src, uint32_t len) {
     uint32_t space;
     void *ptr = TPCircularBufferHead(buffer, &space);
     if ( space < len ) return false;
@@ -241,7 +241,7 @@ static __inline__ __attribute__((always_inline)) bool TPCircularBufferProduceByt
  * Deprecated method
  */
 static __inline__ __attribute__((always_inline)) __deprecated_msg("use TPCircularBufferSetAtomic(false) and TPCircularBufferConsume instead")
-void TPCircularBufferConsumeNoBarrier(TPCircularBuffer *buffer, uint32_t amount) {
+void TPCircularBufferConsumeNoBarrier(TPCircularBufferSkoove *buffer, uint32_t amount) {
     buffer->tail = (buffer->tail + amount) % buffer->length;
     buffer->fillCount -= amount;
     assert(buffer->fillCount >= 0);
@@ -251,7 +251,7 @@ void TPCircularBufferConsumeNoBarrier(TPCircularBuffer *buffer, uint32_t amount)
  * Deprecated method
  */
 static __inline__ __attribute__((always_inline)) __deprecated_msg("use TPCircularBufferSetAtomic(false) and TPCircularBufferProduce instead")
-void TPCircularBufferProduceNoBarrier(TPCircularBuffer *buffer, uint32_t amount) {
+void TPCircularBufferProduceNoBarrier(TPCircularBufferSkoove *buffer, uint32_t amount) {
     buffer->head = (buffer->head + amount) % buffer->length;
     buffer->fillCount += amount;
     assert(buffer->fillCount <= buffer->length);

@@ -41,11 +41,11 @@ static inline bool _reportResult(kern_return_t result, const char *operation, co
     return true;
 }
 
-bool _TPCircularBufferInit(TPCircularBuffer *buffer, uint32_t length, size_t structSize) {
+bool _TPCircularBufferInit(TPCircularBufferSkoove *buffer, uint32_t length, size_t structSize) {
     
     assert(length > 0);
     
-    if ( structSize != sizeof(TPCircularBuffer) ) {
+    if ( structSize != sizeof(TPCircularBufferSkoove) ) {
         fprintf(stderr, "TPCircularBuffer: Header version mismatch. Check for old versions of TPCircularBuffer in your project\n");
         abort();
     }
@@ -132,18 +132,18 @@ bool _TPCircularBufferInit(TPCircularBuffer *buffer, uint32_t length, size_t str
     return false;
 }
 
-void TPCircularBufferCleanup(TPCircularBuffer *buffer) {
+void TPCircularBufferCleanup(TPCircularBufferSkoove *buffer) {
     vm_deallocate(mach_task_self(), (vm_address_t)buffer->buffer, buffer->length * 2);
-    memset(buffer, 0, sizeof(TPCircularBuffer));
+    memset(buffer, 0, sizeof(TPCircularBufferSkoove));
 }
 
-void TPCircularBufferClear(TPCircularBuffer *buffer) {
+void TPCircularBufferClear(TPCircularBufferSkoove *buffer) {
     uint32_t fillCount;
     if ( TPCircularBufferTail(buffer, &fillCount) ) {
         TPCircularBufferConsume(buffer, fillCount);
     }
 }
 
-void  TPCircularBufferSetAtomic(TPCircularBuffer *buffer, bool atomic) {
+void  TPCircularBufferSetAtomic(TPCircularBufferSkoove *buffer, bool atomic) {
     buffer->atomic = atomic;
 }
